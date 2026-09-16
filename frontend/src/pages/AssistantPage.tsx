@@ -15,6 +15,7 @@ import { RobotOutlined, UserOutlined, SendOutlined } from '@ant-design/icons';
 import { useMemo, useRef, useState } from 'react';
 import { fetchAssistant, type AssistantReply } from '../api';
 import { useCart } from '../store/cart';
+import Markdown from '../components/Markdown';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -116,7 +117,11 @@ export default function AssistantPage() {
                         {message.mode === 'ai' ? '大模型' : '离线概览'}
                       </Tag>
                     )}
-                    <div className="chat-text">{message.content}</div>
+                    {message.role === 'assistant' ? (
+                      <Markdown content={message.content} />
+                    ) : (
+                      <div className="chat-text">{message.content}</div>
+                    )}
                     {message.note && (
                       <Typography.Text type="secondary" className="chat-note">
                         {message.note}
