@@ -10,13 +10,11 @@ backend/tmp/
 backend/.env
 frontend/.env
 
-# 课程数据（RIC 数据声明：不得传播，招募结束后须删除）
-# SQLite 由 backend/data/ric_course_sample_dataset.json 首次运行时自动生成
-backend/data/*.sqlite
-backend/data/*.sqlite-*
-backend/data/*.db
-backend/data/*.db-*
+# 课程源数据（RIC 数据声明：不得传播，招募结束后须删除）——源 JSON 不入库
 backend/data/ric_course_sample_dataset.json
+# 由源数据生成的 SQLite 数据库已入库（见 backend/data/ric-courses.sqlite），便于克隆后直接运行
+# 仅 SQLite 临时文件保持忽略（journal_mode=delete 下一般不产生，仅作防御）
+backend/data/*.sqlite-*
 
 # 系统文件
 .DS_Store
