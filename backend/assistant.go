@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 )
@@ -370,26 +371,19 @@ func offlineSummary(courses []courseContext) string {
 		}
 
 		fv := d.FeatureVotes
-		workCount := 0
 		workItems := make([]string, 0, 6)
 		if fv.Final.Yes > fv.Final.No {
-			workItems = append(workItems, "期末考"); workCount++
-		}
+			workItems = append(workItems, "期末考")		}
 		if fv.Essay.Yes > fv.Essay.No {
-			workItems = append(workItems, "论文"); workCount++
-		}
+			workItems = append(workItems, "论文")		}
 		if fv.Project.Yes > fv.Project.No {
-			workItems = append(workItems, "项目"); workCount++
-		}
+			workItems = append(workItems, "项目")		}
 		if fv.Presentation.Yes > fv.Presentation.No {
-			workItems = append(workItems, "展示"); workCount++
-		}
+			workItems = append(workItems, "展示")		}
 		if fv.Attendance.Yes > fv.Attendance.No {
-			workItems = append(workItems, "考勤"); workCount++
-		}
+			workItems = append(workItems, "考勤")		}
 		if fv.Tutorial.Yes > fv.Tutorial.No {
-			workItems = append(workItems, "辅导课"); workCount++
-		}
+			workItems = append(workItems, "辅导课")		}
 		workload := "考核较轻"
 		if len(workItems) > 0 {
 			workload = "考核包含：" + strings.Join(workItems, "、")
@@ -403,21 +397,24 @@ func offlineSummary(courses []courseContext) string {
 		b.WriteString("\n")
 
 		if len(c.Slots) > 0 {
-			days := map[int]bool{}
+			daySet := map[int]bool{}
 			crossCampus := false
-			venues := map[string]bool{}
 			for _, s := range c.Slots {
-				days[s.Day] = true
-				venues[s.Venue] = true
+				daySet[s.Day] = true
 				if campusOf(s.Venue) == campusCentennial {
 					crossCampus = true
 				}
 			}
-			dayList := make([]string, 0, len(days))
-			for day := range days {
-				dayList = append(dayList, "周"+dayLabel(day))
+			dayNums := make([]int, 0, len(daySet))
+			for day := range daySet {
+				dayNums = append(dayNums, day)
 			}
-			fmt.Fprintf(&b, "   - 上课日：%s", strings.Join(dayList, "、"))
+			sort.Ints(dayNums)
+			dayStrs := make([]string, 0, len(dayNums))
+			for _, day := range dayNums {
+				dayStrs = append(dayStrs, "周"+dayLabel(day))
+			}
+			fmt.Fprintf(&b, "   - 上课日：%s", strings.Join(dayStrs, "、"))
 			if crossCampus {
 				b.WriteString("；有百周年校园的课，注意跨校区通勤")
 			}
