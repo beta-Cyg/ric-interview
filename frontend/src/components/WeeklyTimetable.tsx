@@ -118,6 +118,7 @@ export default function WeeklyTimetable({ items, week }: Props) {
           <div className="timetable-block-code">
             {block.item.courseCode} {block.item.section ?? ''}
           </div>
+          <div className="timetable-block-time">{block.start}-{block.end}</div>
           <div className="timetable-block-venue">{block.venue}</div>
         </div>
       ))}

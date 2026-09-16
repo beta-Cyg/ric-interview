@@ -182,6 +182,12 @@ body {
   font-weight: 500;
 }
 
+.timetable-block-time {
+  font-size: 10px;
+  opacity: 0.92;
+  margin: 1px 0;
+}
+
 .timetable-block-venue {
   opacity: 0.85;
 }
