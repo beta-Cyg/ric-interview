@@ -74,9 +74,15 @@ body {
   border-bottom: none;
 }
 
-/* 当前页菜单下划线用青绿强调色（仅导航，不影响全局主色） */
-.app-menu.ant-menu-dark .ant-menu-item-selected::after {
+/* 当前页菜单下划线 + 文字用青绿强调色（仅导航，不影响全局主色按钮） */
+.app-menu.ant-menu-dark .ant-menu-item-selected::after,
+.app-menu .ant-menu-item-selected::after {
   border-bottom-color: #1d9e75 !important;
+  border-bottom-width: 3px !important;
+}
+
+.app-menu .ant-menu-item-selected {
+  color: #1d9e75 !important;
 }
 
 .app-content {
