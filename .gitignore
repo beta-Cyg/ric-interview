@@ -1,0 +1,27 @@
+# 依赖与构建产物
+frontend/node_modules/
+frontend/dist/
+backend/tmp/
+
+# 环境变量（含 API Key，禁止提交）
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# 课程数据（RIC 数据声明：不得传播，招募结束后须删除）
+# SQLite 由 backend/data/ric_course_sample_dataset.json 首次运行时自动生成
+backend/data/*.sqlite
+backend/data/*.sqlite-*
+backend/data/*.db
+backend/data/*.db-*
+backend/data/ric_course_sample_dataset.json
+
+# 系统文件
+.DS_Store
+__MACOSX/
+Thumbs.db
+
+# 日志
+*.log

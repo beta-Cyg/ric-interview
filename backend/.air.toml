@@ -1,0 +1,12 @@
+root = "/app"
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/main ."
+  bin = "tmp/main"
+  include_ext = ["go", "mod", "sum"]
+  exclude_dir = ["tmp", "data"]
+  delay = 500
+  stop_on_error = true
+  send_interrupt = true
+  kill_delay = 1000

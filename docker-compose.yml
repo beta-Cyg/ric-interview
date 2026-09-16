@@ -1,0 +1,38 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: ric-backend
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment:
+      API_ADDR: 0.0.0.0:3001
+      DATA_DIR: /app
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - go-mod:/go/pkg/mod
+      - go-build:/root/.cache/go-build
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: ric-frontend
+    environment:
+      API_PROXY_TARGET: http://backend:3001
+      WATCH_POLL: "1"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  go-mod:
+  go-build:

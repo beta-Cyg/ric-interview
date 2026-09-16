@@ -1,0 +1,29 @@
+body {
+  margin: 0;
+  background: #ffffff;
+}
+
+.page {
+  width: 1040px;
+  margin: 40px auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-header h2 {
+  margin-bottom: 0;
+}
+
+.course-toolbar {
+  display: flex;
+  gap: 8px;
+  margin: 24px 0 16px;
+}
+
+.course-search {
+  width: 360px;
+}
