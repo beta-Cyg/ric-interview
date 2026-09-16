@@ -12,7 +12,7 @@ import {
   Typography,
 } from 'antd';
 import { RobotOutlined, UserOutlined, SendOutlined } from '@ant-design/icons';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchAssistant, type AssistantReply } from '../api';
 import { useCart } from '../store/cart';
 import Markdown from '../components/Markdown';
@@ -24,6 +24,26 @@ interface ChatMessage {
   note?: string;
 }
 
+// 对话记录缓存 key（与选课篮 ric.cart.v1 同源 localStorage）
+const CHAT_KEY = 'ric.assistant.chat.v1';
+
+function loadChat(): ChatMessage[] {
+  try {
+    const raw = localStorage.getItem(CHAT_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter(
+        (m): m is ChatMessage =>
+          m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string',
+      );
+    }
+  } catch {
+    // 解析失败则忽略缓存，回到空对话
+  }
+  return [];
+}
+
 const SUGGESTIONS = [
   '帮我评估一下这些课的整体难度和工作量',
   '这几门课会不会有时间冲突或跨校区奔波？',
@@ -33,10 +53,23 @@ const SUGGESTIONS = [
 
 export default function AssistantPage() {
   const { items } = useCart();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(loadChat);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // 每次对话变化都落盘到浏览器 localStorage，刷新后仍能看到历史。
+  useEffect(() => {
+    try {
+      localStorage.setItem(CHAT_KEY, JSON.stringify(messages));
+    } catch {
+      // 容量超限等异常静默忽略，不影响聊天本身
+    }
+  }, [messages]);
+
+  const clearChat = () => {
+    setMessages([]);
+  };
 
   const subclassIds = useMemo(() => items.map((item) => item.subclassId), [items]);
   const courseCodes = useMemo(() => items.map((item) => item.courseCode), [items]);
@@ -79,16 +112,30 @@ export default function AssistantPage() {
   return (
     <div className="assistant-page">
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-        <div>
-          <Typography.Title level={3} style={{ marginBottom: 4 }}>
-            AI 选课助手
-          </Typography.Title>
-          <Typography.Text type="secondary">
-            用自然语言问它选课问题，例如「这几门会不会撞课」「有没有早八」。
-            {items.length > 0
-              ? `当前已把选课篮里的 ${items.length} 门课作为上下文传给它。`
-              : '提示：把课程加入选课篮后，助手能结合你的实际排课给建议。'}
-          </Typography.Text>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 12,
+          }}
+        >
+          <div>
+            <Typography.Title level={3} style={{ marginBottom: 4 }}>
+              AI 选课助手
+            </Typography.Title>
+            <Typography.Text type="secondary">
+              用自然语言问它选课问题，例如「这几门会不会撞课」「有没有早八」。
+              {items.length > 0
+                ? `当前已把选课篮里的 ${items.length} 门课作为上下文传给它。`
+                : '提示：把课程加入选课篮后，助手能结合你的实际排课给建议。'}
+            </Typography.Text>
+          </div>
+          {messages.length > 0 && (
+            <Button size="small" onClick={clearChat}>
+              清空对话
+            </Button>
+          )}
         </div>
 
         <Card className="assistant-chat" styles={{ body: { padding: 16 } }}>
