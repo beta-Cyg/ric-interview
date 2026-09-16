@@ -92,13 +92,13 @@ func coursesHandler(db *sql.DB) http.HandlerFunc {
 				COUNT(reviews.id) AS reviewCount,
 				courses.liked_count,
 				courses.disliked_count,
-				COALESCE((
-					SELECT GROUP_CONCAT(DISTINCT instructor, '|')
-					FROM subclasses
-					WHERE course_code = courses.code
-					  AND instructor IS NOT NULL
-					  AND TRIM(instructor) <> ''
-				), '') AS instructors
+			COALESCE((
+				SELECT GROUP_CONCAT(instructor, '|')
+				FROM subclasses
+				WHERE course_code = courses.code
+				  AND instructor IS NOT NULL
+				  AND TRIM(instructor) <> ''
+			), '') AS instructors
 			FROM courses
 			LEFT JOIN reviews ON reviews.course_code = courses.code
 			WHERE (? = '' OR LOWER(courses.code) LIKE '%' || ? || '%' OR LOWER(courses.title) LIKE '%' || ? || '%')
@@ -128,9 +128,15 @@ func coursesHandler(db *sql.DB) http.HandlerFunc {
 			if description.Valid {
 				item.Description = &description.String
 			}
-			if instructorsRaw != "" {
-				item.Instructors = strings.Split(instructorsRaw, "|")
+		if instructorsRaw != "" {
+			seen := make(map[string]bool)
+			for _, name := range strings.Split(instructorsRaw, "|") {
+				if !seen[name] {
+					seen[name] = true
+					item.Instructors = append(item.Instructors, name)
+				}
 			}
+		}
 			courses = append(courses, item)
 		}
 		if err := rows.Err(); err != nil {
