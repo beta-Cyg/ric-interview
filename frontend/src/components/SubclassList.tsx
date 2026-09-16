@@ -3,7 +3,7 @@ import { Button, Tag, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useCart } from '../store/cart';
 import type { Subclass } from '../types';
-import { formatSlot } from '../utils/schedule';
+import { dayName, formatTimeRange, groupSlots } from '../utils/schedule';
 
 const COLLAPSE_THRESHOLD = 5;
 
@@ -43,16 +43,31 @@ export default function SubclassList({ courseCode, courseTitle, subclasses }: Pr
     {
       title: '上课时间',
       key: 'slots',
-      render: (_, subclass) =>
-        subclass.slots.length === 0 ? (
-          <span>—</span>
-        ) : (
+      render: (_, subclass) => {
+        const groups = groupSlots(subclass.slots);
+        if (groups.length === 0) {
+          return <span>—</span>;
+        }
+        return (
           <div>
-            {subclass.slots.map((slot, index) => (
-              <div key={index}>{formatSlot(slot)}</div>
+            {groups.map((group) => (
+              <div key={group.key} style={{ marginBottom: 6 }}>
+                <div>
+                  {dayName(group.day)} {formatTimeRange(group.startTime, group.endTime)}
+                  {group.venue ? ` ${group.venue}` : ''}
+                </div>
+                {group.dateRanges.length > 0 && (
+                  <div className="slot-dates" title={group.dateRanges.join('、')}>
+                    {group.dateRanges.length > 3
+                      ? `${group.dateRanges.slice(0, 2).join(' · ')} · 共 ${group.dateRanges.length} 段`
+                      : group.dateRanges.join(' · ')}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
-        ),
+        );
+      },
     },
     {
       title: '状态',

@@ -1,4 +1,4 @@
-import { Button, Card, Empty, Segmented, Space, Table, Typography } from 'antd';
+import { Alert, Button, Card, Empty, Segmented, Select, Space, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -6,8 +6,8 @@ import { fetchConflicts } from '../api';
 import ConflictPanel from '../components/ConflictPanel';
 import WeeklyTimetable from '../components/WeeklyTimetable';
 import { useCart, type CartItem } from '../store/cart';
-import type { ScheduleResult } from '../types';
-import { formatSlot } from '../utils/schedule';
+import type { ScheduleResult, Slot } from '../types';
+import { buildWeeks, formatSlot, slotMeetsInWeek } from '../utils/schedule';
 
 const EMPTY_SCHEDULE: ScheduleResult = { conflicts: [], warnings: [], semesters: [] };
 
@@ -17,6 +17,8 @@ export default function CartPage() {
   const [schedule, setSchedule] = useState<ScheduleResult>(EMPTY_SCHEDULE);
   const [loading, setLoading] = useState(false);
   const [semester, setSemester] = useState<string>('全部');
+  // 0 表示「整学期」合并视图，其余为第 N 周。
+  const [weekIndex, setWeekIndex] = useState<number>(0);
 
   const idKey = items
     .map((item) => item.subclassId)
@@ -62,6 +64,29 @@ export default function CartPage() {
     () => (semester === '全部' ? items : items.filter((item) => item.semester === semester)),
     [items, semester],
   );
+
+  const weeks = useMemo(() => {
+    const slots: Slot[] = [];
+    visibleItems.forEach((item) => slots.push(...item.slots));
+    return buildWeeks(slots);
+  }, [visibleItems]);
+
+  // 换学期或改选课后周次会失效，回到整学期视图。
+  useEffect(() => {
+    setWeekIndex(0);
+  }, [semester, idKey]);
+
+  const selectedWeek = useMemo(
+    () => (weekIndex === 0 ? null : weeks.find((week) => week.index === weekIndex) ?? null),
+    [weeks, weekIndex],
+  );
+
+  const hasClassInWeek = useMemo(() => {
+    if (!selectedWeek) return true;
+    return visibleItems.some((item) =>
+      item.slots.some((slot) => slotMeetsInWeek(slot, selectedWeek)),
+    );
+  }, [visibleItems, selectedWeek]);
 
   const columns: ColumnsType<CartItem> = [
     {
@@ -130,7 +155,11 @@ export default function CartPage() {
           </Empty>
         ) : (
           <>
-            <Card size="small" loading={loading} title="周课表">
+            <Card
+              size="small"
+              loading={loading}
+              title={selectedWeek ? `周课表 · ${selectedWeek.label}` : '周课表'}
+            >
               {semesterOptions.length > 0 && (
                 <Segmented
                   value={semester}
@@ -139,7 +168,30 @@ export default function CartPage() {
                   style={{ marginBottom: 12 }}
                 />
               )}
-              <WeeklyTimetable items={visibleItems} />
+              {weeks.length > 0 && (
+                <Space style={{ marginBottom: 12 }} wrap>
+                  <span style={{ fontSize: 13, color: '#8c8c8c' }}>周次</span>
+                  <Select
+                    value={weekIndex}
+                    onChange={(value) => setWeekIndex(Number(value))}
+                    style={{ width: 230 }}
+                    options={[
+                      { value: 0, label: '整学期（合并显示）' },
+                      ...weeks.map((week) => ({ value: week.index, label: week.label })),
+                    ]}
+                  />
+                </Space>
+              )}
+              <WeeklyTimetable items={visibleItems} week={selectedWeek} />
+              {!hasClassInWeek && selectedWeek && (
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginTop: 12 }}
+                  message={`${selectedWeek.label} 没有排课`}
+                  description="该周不落在所选班次的教学周区间内，通常是 reading week、假期或考试周。"
+                />
+              )}
             </Card>
 
             <Card size="small" loading={loading}>

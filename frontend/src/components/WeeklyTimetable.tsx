@@ -1,5 +1,5 @@
 import type { CartItem } from '../store/cart';
-import { dayName, toMinutes } from '../utils/schedule';
+import { dayName, slotMeetsInWeek, toMinutes, type WeekOption } from '../utils/schedule';
 
 const DAY_START = 8 * 60;
 const DAY_END = 22 * 60;
@@ -36,11 +36,12 @@ interface Block {
   rowEnd: number;
 }
 
-function buildBlocks(items: CartItem[]): Block[] {
+function buildBlocks(items: CartItem[], week: WeekOption | null): Block[] {
   const blocks: Block[] = [];
   items.forEach((item) => {
     item.slots.forEach((slot, index) => {
       if (slot.day < 1 || slot.day > 5) return;
+      if (week && !slotMeetsInWeek(slot, week)) return;
       const startMin = toMinutes(slot.start_time);
       const endMin = toMinutes(slot.end_time);
       if (endMin <= DAY_START || startMin >= DAY_END) return;
@@ -61,8 +62,13 @@ function buildBlocks(items: CartItem[]): Block[] {
   return blocks;
 }
 
-export default function WeeklyTimetable({ items }: { items: CartItem[] }) {
-  const blocks = buildBlocks(items);
+interface Props {
+  items: CartItem[];
+  week: WeekOption | null;
+}
+
+export default function WeeklyTimetable({ items, week }: Props) {
+  const blocks = buildBlocks(items, week);
   const hours = Array.from({ length: (DAY_END - DAY_START) / 60 + 1 }, (_, i) => 8 + i);
 
   return (
