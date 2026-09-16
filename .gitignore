@@ -23,3 +23,6 @@ Thumbs.db
 
 # 日志
 *.log
+
+# 演示要点（仅本地用，不随仓库提交）
+DEMO_NOTES.md

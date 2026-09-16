@@ -106,7 +106,12 @@ pnpm dev
 
 ## AI 助手配置
 
-在 `backend/.env` 中填入 DeepSeek 密钥即可启用大模型模式（缺省为离线概览）：
+后端读取 `backend/.env` 启用 DeepSeek 大模型模式（缺省为离线概览）。仓库已提交一份**不含密钥**的模板 `backend/.env.example`，克隆后复制并填入 Key 即可：
+
+```bash
+cp backend/.env.example backend/.env
+# 然后编辑 backend/.env，把 DEEPSEEK_API_KEY 换成你的真实 Key
+```
 
 ```env
 DEEPSEEK_API_KEY=你的key
@@ -114,7 +119,7 @@ DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-chat
 ```
 
-`.env` 已在 `.gitignore` 中，不会进入版本库。
+> `backend/.env` 已在 `.gitignore` 中（`backend/.env.example` 不受影响、正常提交），含密钥的 `.env` **永远不会进入版本库**；未配置 Key 或调用失败时，AI 助手自动回落到离线概览。
 
 ## API 一览
 
@@ -139,15 +144,10 @@ DEEPSEEK_MODEL=deepseek-chat
 
 ```text
 ric-course-starter/
-├── backend/        Go API、SQLite 建库、AI 助手、.env（密钥）
+├── backend/        Go API、SQLite 建库、AI 助手、.env（密钥，已被忽略）、.env.example（不含密钥的模板）
 ├── frontend/       React 前端（页面 / 组件 / 工具 / 选课篮状态）
 ├── scripts/        setup.sh 一键安装脚本（Docker）
 └── docker-compose.yml
 ```
 
-## 演示要点（面试用）
-
-1. 课程列表搜索「ACCT」并按评价数排序，进入课程详情看成绩分布与评价。
-2. 把 ACCT1101 与 SCNC1112 加入选课篮，周课表出现**硬冲突**高亮。
-3. 切换「按周」观察 reading week 等无课周。
-4. 打开 AI 选课助手，问「这几门会不会撞课 / 有没有早八」，观察大模型与离线两种模式。
+> 面试演示脚本（环境准备、分步演示流程、UI 亮点）单独维护在仓库外的 `DEMO_NOTES.md`，不随本仓库提交，便于按需更新。
