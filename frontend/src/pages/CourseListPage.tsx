@@ -1,5 +1,6 @@
-import { Alert, Button, Input, Select, Space, Table, Typography, message } from 'antd';
+import { Alert, Button, Input, Select, Space, Table, Tag, Typography, message } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import Fuse from 'fuse.js';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchCourse, fetchCourses, fetchDepartments } from '../api';
@@ -12,19 +13,24 @@ const SORT_OPTIONS = [
   { value: 'rating', label: '按好评率' },
 ];
 
-function ratingText(course: CourseSummary): string {
+function ratingValue(course: CourseSummary): number {
   const total = course.likedCount + course.dislikedCount;
-  if (total === 0) {
-    return '—';
-  }
-  return `${Math.round((course.likedCount / total) * 100)}%`;
+  if (total === 0) return -1; // 无评价排最后
+  return course.likedCount / total;
+}
+
+function ratingText(course: CourseSummary): string {
+  const value = ratingValue(course);
+  if (value < 0) return '—';
+  return `${Math.round(value * 100)}%`;
 }
 
 export default function CourseListPage() {
   const navigate = useNavigate();
   const { add, hasSubclass, subclassIdOf } = useCart();
 
-  const [courses, setCourses] = useState<CourseSummary[]>([]);
+  // 全量课程：仅加载一次，模糊搜索在本地完成，无需每次输入都请求后端
+  const [allCourses, setAllCourses] = useState<CourseSummary[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
   const [keywordInput, setKeywordInput] = useState('');
   const [keyword, setKeyword] = useState('');
@@ -34,19 +40,20 @@ export default function CourseListPage() {
   const [error, setError] = useState('');
   const [pendingCode, setPendingCode] = useState<string | null>(null);
 
-  // 关键词防抖：输入停止 300ms 后才真正发请求
+  // 关键词防抖：输入停止 300ms 后才触发模糊匹配
   useEffect(() => {
     const timer = window.setTimeout(() => setKeyword(keywordInput.trim()), 300);
     return () => window.clearTimeout(timer);
   }, [keywordInput]);
 
+  // 首次进入加载全量课程与院系列表
   useEffect(() => {
     let active = true;
     setLoading(true);
-    fetchCourses({ keyword, department, sort })
+    fetchCourses({})
       .then((data) => {
         if (!active) return;
-        setCourses(data);
+        setAllCourses(data);
         setError('');
       })
       .catch((requestError: unknown) => {
@@ -59,13 +66,46 @@ export default function CourseListPage() {
     return () => {
       active = false;
     };
-  }, [keyword, department, sort]);
+  }, []);
 
   useEffect(() => {
     fetchDepartments()
       .then(setDepartments)
       .catch(() => setDepartments([]));
   }, []);
+
+  // Fuse 模糊索引：容忍拼写误差、按相关度排序；ignoreLocation 让匹配不限于开头
+  const fuse = useMemo(
+    () =>
+      new Fuse(allCourses, {
+        keys: ['code', 'title', 'offerDept'],
+        threshold: 0.4,
+        ignoreLocation: true,
+        includeScore: true,
+        minMatchCharLength: 1,
+      }),
+    [allCourses],
+  );
+
+  // 本地模糊过滤 + 院系筛选 + 排序
+  const courses = useMemo<CourseSummary[]>(() => {
+    let list: CourseSummary[] = allCourses;
+    if (keyword) {
+      list = fuse.search(keyword).map((result) => result.item);
+    }
+    if (department) {
+      list = list.filter((course) => course.offerDept === department);
+    }
+    const sorted = [...list];
+    if (sort === 'reviews') {
+      sorted.sort((a, b) => b.reviewedCount - a.reviewedCount || a.code.localeCompare(b.code));
+    } else if (sort === 'rating') {
+      sorted.sort((a, b) => ratingValue(b) - ratingValue(a) || a.code.localeCompare(b.code));
+    } else {
+      sorted.sort((a, b) => a.code.localeCompare(b.code));
+    }
+    return sorted;
+  }, [allCourses, fuse, keyword, department, sort]);
 
   async function handleQuickAdd(course: CourseSummary) {
     setPendingCode(course.code);
@@ -144,14 +184,14 @@ export default function CourseListPage() {
     <div>
       <Typography.Title level={3}>课程列表</Typography.Title>
       <Typography.Paragraph type="secondary">
-        搜索课程后点击进入详情，查看成绩分布、六维评价与可选班次。
+        支持模糊搜索：拼写误差、部分匹配也能命中。点击课程进入详情，查看成绩分布、六维评价与可选班次。
       </Typography.Paragraph>
 
       <Space wrap size="middle" className="list-toolbar">
         <Input.Search
           allowClear
-          placeholder="搜索课程代码或名称"
-          style={{ width: 260 }}
+          placeholder="搜索课程代码或名称（支持模糊匹配）"
+          style={{ width: 280 }}
           value={keywordInput}
           onChange={(event) => setKeywordInput(event.target.value)}
           onSearch={(value) => setKeyword(value.trim())}
@@ -170,6 +210,9 @@ export default function CourseListPage() {
           onChange={(value: CourseSort) => setSort(value)}
           options={SORT_OPTIONS}
         />
+        {keyword && (
+          <Tag color="blue">模糊匹配 “{keyword}” · {courses.length} 条</Tag>
+        )}
       </Space>
 
       {error && <Alert type="error" message={error} style={{ marginBottom: 16 }} />}
