@@ -76,7 +76,7 @@ type assistantContext struct {
 
 // buildAssistantContext 从选课篮的 subclassIds 与显式课程代码收集课程，
 // 组装成一段给大模型看的纯文本上下文。没有可分析课程时 text 为空。
-func buildAssistantContext(db *sql.DB, subclassIDs, courseCodes []string) assistantContext {
+func buildAssistantContext(db *sql.DB, subclassIDs []int, courseCodes []string) assistantContext {
 	codeSet := map[string]bool{}
 	scheduleByCode := map[string][]slot{}
 
