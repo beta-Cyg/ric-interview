@@ -116,7 +116,7 @@ export default function CourseDetailPage() {
           <FeatureVotesPanel data={course.feature_votes} />
         </Card>
 
-        <Card title="班次与上课时间" size="small">
+        <Card title={`班次与上课时间（共 ${course.subclasses.length} 个）`} size="small">
           <SubclassList
             courseCode={course.code}
             courseTitle={course.title}
