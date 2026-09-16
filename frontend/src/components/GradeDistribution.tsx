@@ -2,20 +2,20 @@ import { Tooltip } from 'antd';
 import type { GradeDistribution } from '../types';
 
 const GRADES: { key: keyof GradeDistribution; label: string; color: string }[] = [
-  { key: 'a_plus', label: 'A+', color: '#237804' },
-  { key: 'a', label: 'A', color: '#389e0d' },
-  { key: 'a_minus', label: 'A-', color: '#52c41a' },
-  { key: 'b_plus', label: 'B+', color: '#0958d9' },
-  { key: 'b', label: 'B', color: '#1677ff' },
-  { key: 'b_minus', label: 'B-', color: '#4096ff' },
-  { key: 'c_plus', label: 'C+', color: '#d48806' },
-  { key: 'c', label: 'C', color: '#faad14' },
-  { key: 'c_minus', label: 'C-', color: '#ffc53d' },
-  { key: 'd_plus', label: 'D+', color: '#d46b08' },
-  { key: 'd', label: 'D', color: '#fa8c16' },
-  { key: 'd_minus', label: 'D-', color: '#ffa940' },
-  { key: 'pass', label: 'P', color: '#8c8c8c' },
-  { key: 'fail', label: 'F', color: '#cf1322' },
+  { key: 'a_plus', label: 'A+', color: '#1f1f1f' },
+  { key: 'a', label: 'A', color: '#1f1f1f' },
+  { key: 'a_minus', label: 'A-', color: '#1f1f1f' },
+  { key: 'b_plus', label: 'B+', color: '#1f1f1f' },
+  { key: 'b', label: 'B', color: '#1f1f1f' },
+  { key: 'b_minus', label: 'B-', color: '#1f1f1f' },
+  { key: 'c_plus', label: 'C+', color: '#1f1f1f' },
+  { key: 'c', label: 'C', color: '#1f1f1f' },
+  { key: 'c_minus', label: 'C-', color: '#1f1f1f' },
+  { key: 'd_plus', label: 'D+', color: '#1f1f1f' },
+  { key: 'd', label: 'D', color: '#1f1f1f' },
+  { key: 'd_minus', label: 'D-', color: '#1f1f1f' },
+  { key: 'pass', label: 'P', color: '#bfbfbf' },
+  { key: 'fail', label: 'F', color: '#8c8c8c' },
 ];
 
 export default function GradeDistributionChart({ data }: { data: GradeDistribution }) {

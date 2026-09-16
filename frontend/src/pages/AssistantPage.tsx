@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
-import { RobotOutlined, UserOutlined, SendOutlined } from '@ant-design/icons';
+import { UserOutlined, SendOutlined } from '@ant-design/icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchAssistant, type AssistantReply } from '../api';
 import { useCart } from '../store/cart';
@@ -152,14 +152,18 @@ export default function AssistantPage() {
                   className={`chat-row chat-row-${message.role}`}
                 >
                   <Avatar
-                    className="chat-avatar"
-                    icon={message.role === 'user' ? <UserOutlined /> : <RobotOutlined />}
+                    className={`chat-avatar${message.role === 'assistant' ? ' chat-avatar-assistant' : ''}`}
+                    src={message.role === 'assistant' ? '/deepseek-logo.svg' : undefined}
+                    icon={message.role === 'user' ? <UserOutlined /> : undefined}
                   />
                   <div className="chat-bubble">
                     {message.role === 'assistant' && message.mode && (
                       <Tag
-                        color={message.mode === 'ai' ? 'blue' : 'default'}
-                        style={{ marginBottom: 6 }}
+                        style={{
+                          marginBottom: 6,
+                          color: message.mode === 'ai' ? '#1f1f1f' : '#8c8c8c',
+                          borderColor: message.mode === 'ai' ? '#1f1f1f' : '#d9d9d9',
+                        }}
                       >
                         {message.mode === 'ai' ? '大模型' : '离线概览'}
                       </Tag>
@@ -179,7 +183,7 @@ export default function AssistantPage() {
               ))}
               {loading && (
                 <div className="chat-row chat-row-assistant">
-                  <Avatar className="chat-avatar" icon={<RobotOutlined />} />
+                  <Avatar className="chat-avatar chat-avatar-assistant" src="/deepseek-logo.svg" />
                   <div className="chat-bubble">
                     <Spin size="small" /> <span style={{ marginLeft: 8, color: '#8c8c8c' }}>思考中…</span>
                   </div>

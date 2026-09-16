@@ -1,5 +1,4 @@
-import { Alert, Button, Input, Select, Space, Table, Tag, Typography, message } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import { Alert, Button, Empty, Input, Select, Space, Tag, Typography, message } from 'antd';
 import Fuse from 'fuse.js';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -19,10 +18,30 @@ function ratingValue(course: CourseSummary): number {
   return course.likedCount / total;
 }
 
-function ratingText(course: CourseSummary): string {
-  const value = ratingValue(course);
-  if (value < 0) return '—';
-  return `${Math.round(value * 100)}%`;
+// 好评率分色：高绿、中金、低红，无评价灰
+function ratingColorOf(value: number): string {
+  if (value < 0) return '#bfbfbf';
+  const percent = value * 100;
+  if (percent >= 85) return '#52c41a';
+  if (percent >= 60) return '#faad14';
+  return '#ff4d4f';
+}
+
+// 院系彩色标签：按院系名稳定映射一组柔和淡彩（浅填充 + 深字 + 同色描边）
+const DEPT_PALETTE = [
+  { bg: '#E6F1FB', fg: '#0C447C', bd: '#B5D4F4' },
+  { bg: '#EEEDFE', fg: '#534AB7', bd: '#CECBF6' },
+  { bg: '#E1F5EE', fg: '#0F6E56', bd: '#9FE1CB' },
+  { bg: '#FAEEDA', fg: '#854F0B', bd: '#FAC775' },
+  { bg: '#FAECE7', fg: '#993C1D', bd: '#F5C4B3' },
+  { bg: '#FBEAF0', fg: '#993556', bd: '#F4C0D1' },
+  { bg: '#EAF3DE', fg: '#3B6D11', bd: '#C0DD97' },
+];
+
+function deptColorOf(dept: string): { bg: string; fg: string; bd: string } {
+  let sum = 0;
+  for (let i = 0; i < dept.length; i += 1) sum += dept.charCodeAt(i);
+  return DEPT_PALETTE[sum % DEPT_PALETTE.length];
 }
 
 export default function CourseListPage() {
@@ -145,60 +164,6 @@ export default function CourseListPage() {
     }
   }
 
-  const columns = useMemo<ColumnsType<CourseSummary>>(
-    () => [
-      {
-        title: '课程代码',
-        dataIndex: 'code',
-        width: 130,
-        render: (code: string) => <Typography.Link strong>{code}</Typography.Link>,
-      },
-      { title: '课程名称', dataIndex: 'title' },
-      {
-        title: '开课院系',
-        dataIndex: 'offerDept',
-        responsive: ['lg'],
-        render: (value: string | null) => value || '—',
-      },
-      {
-        title: '授课讲师',
-        responsive: ['lg'],
-        render: (_, course) =>
-          course.instructors && course.instructors.length > 0
-            ? course.instructors.join('、')
-            : '—',
-      },
-      { title: '评价数', dataIndex: 'reviewedCount', width: 90 },
-      {
-        title: '好评率',
-        width: 100,
-        render: (_, course) => ratingText(course),
-      },
-      {
-        title: '操作',
-        width: 130,
-        render: (_, course) => {
-          const selectedId = subclassIdOf(course.code);
-          const selected = selectedId !== null && hasSubclass(selectedId);
-          return (
-            <Button
-              size="small"
-              type={selected ? 'default' : 'primary'}
-              loading={pendingCode === course.code}
-              onClick={(event) => {
-                event.stopPropagation();
-                void handleQuickAdd(course);
-              }}
-            >
-              {selected ? '更换班次' : '加入选课篮'}
-            </Button>
-          );
-        },
-      },
-    ],
-    [hasSubclass, subclassIdOf, pendingCode],
-  );
-
   return (
     <div>
       <Typography.Title level={3}>课程列表</Typography.Title>
@@ -242,23 +207,91 @@ export default function CourseListPage() {
           options={SORT_OPTIONS}
         />
         {keyword && (
-          <Tag color="blue">模糊匹配 “{keyword}” · {courses.length} 条</Tag>
+          <Tag color="default">模糊匹配 “{keyword}” · {courses.length} 条</Tag>
         )}
       </Space>
 
       {error && <Alert type="error" message={error} style={{ marginBottom: 16 }} />}
 
-      <Table<CourseSummary>
-        columns={columns}
-        dataSource={courses}
-        rowKey="code"
-        loading={loading}
-        pagination={false}
-        onRow={(course) => ({
-          onClick: () => navigate(`/course/${course.code}`),
-          style: { cursor: 'pointer' },
-        })}
-      />
+      <div className="course-list">
+        {loading ? (
+          <div className="course-list-loading">加载中…</div>
+        ) : courses.length === 0 ? (
+          <Empty description="没有匹配的课程" />
+        ) : (
+          courses.map((course) => {
+            const selectedId = subclassIdOf(course.code);
+            const selected = selectedId !== null && hasSubclass(selectedId);
+            const value = ratingValue(course);
+            const percent = value < 0 ? 0 : Math.round(value * 100);
+            const ratingColor = ratingColorOf(value);
+            const dept = deptColorOf(course.offerDept || '未分类');
+            return (
+              <div
+                className="course-card"
+                key={course.code}
+                onClick={() => navigate(`/course/${course.code}`)}
+              >
+                <span className="course-code-chip">{course.code}</span>
+                <div className="course-main">
+                  <div className="course-title-row">
+                    <span className="course-title">{course.title}</span>
+                    {selected && (
+                      <span className="course-selected-tag">
+                        <span className="course-selected-dot" />
+                        已选
+                      </span>
+                    )}
+                  </div>
+                  <div className="course-sub">
+                    <div className="course-dept-row">
+                      {course.offerDept && (
+                        <span
+                          className="course-dept-pill"
+                          title={course.offerDept}
+                          style={{ background: dept.bg, color: dept.fg, borderColor: dept.bd }}
+                        >
+                          {course.offerDept}
+                        </span>
+                      )}
+                    </div>
+                    {course.instructors && course.instructors.length > 0 && (
+                      <div className="course-instructor-row" title={course.instructors.join('、')}>
+                        {course.instructors.join('、')}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="course-rating">
+                  <span className="course-rating-label">好评率</span>
+                  <div className="course-rating-track">
+                    <div
+                      className="course-rating-fill"
+                      style={{ width: `${percent}%`, backgroundColor: ratingColor }}
+                    />
+                  </div>
+                  <span className="course-rating-val" style={{ color: ratingColor }}>
+                    {value < 0 ? '—' : `${percent}%`}
+                  </span>
+                </div>
+                <div className="course-reviews">{course.reviewedCount} 评</div>
+                <Button
+                  size="small"
+                  type={selected ? 'default' : 'primary'}
+                  className="course-action"
+                  loading={pendingCode === course.code}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    void handleQuickAdd(course);
+                  }}
+                >
+                  {selected ? '更换班次' : '加入选课篮'}
+                </Button>
+              </div>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { Badge, ConfigProvider, Layout, Menu, Typography } from 'antd';
+import { ConfigProvider, Layout, Menu, Typography } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import {
   BrowserRouter,
@@ -25,17 +25,7 @@ function Navigation() {
     { key: '/', label: '课程列表' },
     {
       key: '/cart',
-      label: (
-        <span>
-          选课篮
-          {count > 0 && (
-            <Badge
-              count={count}
-              style={{ marginLeft: 8, backgroundColor: '#fa541c' }}
-            />
-          )}
-        </span>
-      ),
+      label: <span>选课篮{count > 0 ? `（${count}）` : ''}</span>,
     },
     { key: '/assistant', label: 'AI 选课助手' },
   ];
@@ -45,6 +35,7 @@ function Navigation() {
 
   return (
     <Header className="app-header">
+      <img className="app-logo" src="/ric-logo-invert.png" alt="RIC" />
       <Typography.Text className="app-brand" strong>
         RIC 选课规划器
       </Typography.Text>
@@ -55,6 +46,7 @@ function Navigation() {
         items={items}
         onClick={({ key }) => navigate(key)}
         className="app-menu"
+        style={{ background: 'transparent' }}
       />
     </Header>
   );
@@ -83,8 +75,11 @@ export default function App() {
       locale={zhCN}
       theme={{
         token: {
-          colorPrimary: '#2f54eb',
+          colorPrimary: '#1f1f1f',
+          colorLink: '#1f1f1f',
           borderRadius: 8,
+          fontFamily:
+            "'JetBrains Mono', 'Noto Sans SC', 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Heiti SC', sans-serif",
         },
       }}
     >

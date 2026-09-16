@@ -16,15 +16,18 @@ function uniqueValues(values: (string | null)[]): string[] {
 
 export default function ReviewList({ reviews }: { reviews: Review[] }) {
   const [instructor, setInstructor] = useState<string | undefined>(undefined);
+  const [year, setYear] = useState<string | undefined>(undefined);
   const [semester, setSemester] = useState<string | undefined>(undefined);
   const [sort, setSort] = useState<SortMode>('likes');
 
   const instructors = useMemo(() => uniqueValues(reviews.map((r) => r.instructor)), [reviews]);
+  const years = useMemo(() => uniqueValues(reviews.map((r) => r.year_taken)), [reviews]);
   const semesters = useMemo(() => uniqueValues(reviews.map((r) => r.sem_taken)), [reviews]);
 
   const filtered = useMemo(() => {
     const result = reviews.filter((review) => {
       if (instructor && review.instructor !== instructor) return false;
+      if (year && review.year_taken !== year) return false;
       if (semester && review.sem_taken !== semester) return false;
       return true;
     });
@@ -32,7 +35,7 @@ export default function ReviewList({ reviews }: { reviews: Review[] }) {
       return [...result].sort((a, b) => b.liked_count - a.liked_count);
     }
     return [...result].sort((a, b) => (b.created_at ?? '').localeCompare(a.created_at ?? ''));
-  }, [reviews, instructor, semester, sort]);
+  }, [reviews, instructor, year, semester, sort]);
 
   return (
     <div>
@@ -44,6 +47,14 @@ export default function ReviewList({ reviews }: { reviews: Review[] }) {
           value={instructor}
           onChange={setInstructor}
           options={instructors.map((name) => ({ value: name, label: name }))}
+        />
+        <Select
+          allowClear
+          placeholder="全部学年"
+          style={{ width: 140 }}
+          value={year}
+          onChange={setYear}
+          options={years.map((name) => ({ value: name, label: name }))}
         />
         <Select
           allowClear
@@ -74,7 +85,7 @@ export default function ReviewList({ reviews }: { reviews: Review[] }) {
             <List.Item key={review.id}>
               <div className="review-item">
                 <Space size={8} wrap className="review-meta">
-                  {review.instructor && <Tag color="blue">{review.instructor}</Tag>}
+                  {review.instructor && <Tag color="default">{review.instructor}</Tag>}
                   {review.year_taken && <Tag>{review.year_taken}</Tag>}
                   {review.sem_taken && <Tag>{review.sem_taken}</Tag>}
                   <Typography.Text type="secondary">

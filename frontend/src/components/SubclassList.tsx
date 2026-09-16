@@ -51,7 +51,7 @@ export default function SubclassList({ courseCode, courseTitle, subclasses }: Pr
       width: 90,
       render: (active: boolean, subclass) => {
         if (hasSubclass(subclass.id)) {
-          return <Tag color="blue">已选</Tag>;
+          return <Tag color="default">已选</Tag>;
         }
         return active ? <Tag color="green">可选</Tag> : <Tag>停开</Tag>;
       },

@@ -28,7 +28,7 @@ export default function FeatureVotesPanel({ data }: { data: FeatureVotes }) {
             <Progress
               percent={percent}
               status={total === 0 ? 'normal' : 'active'}
-              strokeColor={total === 0 ? '#d9d9d9' : '#2f54eb'}
+              strokeColor={total === 0 ? '#d9d9d9' : '#1f1f1f'}
               showInfo={total > 0}
             />
           </div>

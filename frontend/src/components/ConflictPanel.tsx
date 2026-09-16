@@ -12,9 +12,19 @@ export default function ConflictPanel({ conflicts, warnings }: Props) {
     <div className="conflict-panel">
       <Typography.Title level={5}>
         冲突检测
-        {conflicts.length > 0 && <Tag color="error">{conflicts.length} 处时间冲突</Tag>}
-        {warnings.length > 0 && <Tag color="warning">{warnings.length} 条通勤提示</Tag>}
-        {conflicts.length === 0 && warnings.length === 0 && <Tag color="success">无冲突</Tag>}
+        {conflicts.length > 0 && (
+          <Tag style={{ color: '#ffffff', background: '#1f1f1f', borderColor: '#1f1f1f' }}>
+            {conflicts.length} 处时间冲突
+          </Tag>
+        )}
+        {warnings.length > 0 && (
+          <Tag style={{ color: '#1f1f1f', borderColor: '#1f1f1f' }}>
+            {warnings.length} 条通勤提示
+          </Tag>
+        )}
+        {conflicts.length === 0 && warnings.length === 0 && (
+          <Tag style={{ color: '#8c8c8c', borderColor: '#d9d9d9' }}>无冲突</Tag>
+        )}
       </Typography.Title>
 
       {conflicts.length === 0 && warnings.length === 0 && (
@@ -24,11 +34,12 @@ export default function ConflictPanel({ conflicts, warnings }: Props) {
       {conflicts.map((conflict, index) => (
         <Alert
           key={`c-${index}`}
-          type="error"
-          showIcon
-          style={{ marginBottom: 8 }}
+          type="info"
+          showIcon={false}
+          style={{ marginBottom: 8, background: '#f5f6f8', border: '1px solid #d9d9d9' }}
           message={
             <span>
+              <strong>冲突：</strong>
               <strong>
                 {conflict.left.courseCode} {conflict.left.section ?? ''}
               </strong>{' '}
@@ -52,10 +63,15 @@ export default function ConflictPanel({ conflicts, warnings }: Props) {
       {warnings.map((warning, index) => (
         <Alert
           key={`w-${index}`}
-          type="warning"
-          showIcon
-          style={{ marginBottom: 8 }}
-          message={warning.message}
+          type="info"
+          showIcon={false}
+          style={{ marginBottom: 8, background: '#f5f6f8', border: '1px solid #d9d9d9' }}
+          message={
+            <span>
+              <strong>通勤提示：</strong>
+              {warning.message}
+            </span>
+          }
           description={
             <span>
               {campusLabel(warning.left.campus)}→{campusLabel(warning.right.campus)} · 间隔{' '}
