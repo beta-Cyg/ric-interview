@@ -47,6 +47,7 @@ func main() {
 	mux.HandleFunc("/api/courses/", courseDetailHandler(db))
 	mux.HandleFunc("/api/departments", departmentsHandler(db))
 	mux.HandleFunc("/api/conflicts", conflictsHandler(db))
+	mux.HandleFunc("/api/assistant", assistantHandler(db, loadAssistantConfig()))
 
 	addr := os.Getenv("API_ADDR")
 	if addr == "" {

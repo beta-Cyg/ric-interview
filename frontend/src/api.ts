@@ -79,3 +79,21 @@ export async function fetchConflicts(subclassIds: number[]): Promise<ScheduleRes
     body: JSON.stringify({ subclassIds }),
   });
 }
+
+export interface AssistantReply {
+  reply: string;
+  mode: 'ai' | 'offline';
+  note?: string;
+}
+
+export async function fetchAssistant(params: {
+  message: string;
+  subclassIds?: number[];
+  courseCodes?: string[];
+}): Promise<AssistantReply> {
+  return request<AssistantReply>('/assistant', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+}
