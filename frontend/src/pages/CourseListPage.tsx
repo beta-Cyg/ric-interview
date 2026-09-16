@@ -88,14 +88,14 @@ export default function CourseListPage() {
     [allCourses],
   );
 
-  // 所有课程涉及过的老师（去重），供老师筛选下拉使用
+  // 所有课程涉及过的讲师（去重），供讲师筛选下拉使用
   const instructors = useMemo(() => {
     const set = new Set<string>();
     allCourses.forEach((course) => course.instructors?.forEach((name) => set.add(name)));
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }, [allCourses]);
 
-  // 本地模糊过滤 + 院系筛选 + 老师筛选 + 排序
+  // 本地模糊过滤 + 院系筛选 + 讲师筛选 + 排序
   const courses = useMemo<CourseSummary[]>(() => {
     let list: CourseSummary[] = allCourses;
     if (keyword) {
@@ -155,27 +155,13 @@ export default function CourseListPage() {
       },
       { title: '课程名称', dataIndex: 'title' },
       {
-        title: '课程简介',
-        dataIndex: 'description',
-        responsive: ['md'],
-        width: 280,
-        render: (value: string | null) =>
-          value ? (
-            <Typography.Text ellipsis={{ tooltip: value }} style={{ maxWidth: 260 }}>
-              {value}
-            </Typography.Text>
-          ) : (
-            '—'
-          ),
-      },
-      {
         title: '开课院系',
         dataIndex: 'offerDept',
         responsive: ['lg'],
         render: (value: string | null) => value || '—',
       },
       {
-        title: '授课老师',
+        title: '授课讲师',
         responsive: ['lg'],
         render: (_, course) =>
           course.instructors && course.instructors.length > 0
@@ -217,7 +203,7 @@ export default function CourseListPage() {
     <div>
       <Typography.Title level={3}>课程列表</Typography.Title>
       <Typography.Paragraph type="secondary">
-        支持模糊搜索：课程代码、名称、简介都能搜，拼写误差或部分匹配也能命中。可按院系、授课老师筛选，点击课程进入详情查看成绩分布、六维评价与可选班次。
+        支持模糊搜索：课程代码、名称、简介都能搜，拼写误差或部分匹配也能命中。可按院系、授课讲师筛选，点击课程进入详情查看成绩分布、六维评价与可选班次。
       </Typography.Paragraph>
 
       <Space wrap size="middle" className="list-toolbar">
@@ -240,7 +226,7 @@ export default function CourseListPage() {
         <Select
           allowClear
           showSearch
-          placeholder="全部老师"
+          placeholder="全部讲师"
           style={{ width: 220 }}
           value={instructor}
           onChange={setInstructor}
