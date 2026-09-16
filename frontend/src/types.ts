@@ -4,6 +4,8 @@ export interface CourseSummary {
   code: string;
   title: string;
   offerDept: string | null;
+  description: string | null;
+  instructors: string[];
   reviewedCount: number;
   likedCount: number;
   dislikedCount: number;

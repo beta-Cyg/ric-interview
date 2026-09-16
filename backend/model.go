@@ -134,12 +134,14 @@ type courseDetail struct {
 }
 
 type courseSummary struct {
-	Code          string  `json:"code"`
-	Title         string  `json:"title"`
-	OfferDept     *string `json:"offerDept"`
-	ReviewedCount int     `json:"reviewedCount"`
-	LikedCount    int     `json:"likedCount"`
-	DislikedCount int     `json:"dislikedCount"`
+	Code          string   `json:"code"`
+	Title         string   `json:"title"`
+	OfferDept     *string  `json:"offerDept"`
+	Description   *string  `json:"description"`
+	ReviewedCount int      `json:"reviewedCount"`
+	LikedCount    int      `json:"likedCount"`
+	DislikedCount int      `json:"dislikedCount"`
+	Instructors   []string `json:"instructors"`
 }
 
 // courseRow 与 courses 表全部 34 列一一对应，顺序必须与 courseColumns 一致。

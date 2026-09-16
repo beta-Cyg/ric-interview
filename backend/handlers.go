@@ -88,9 +88,17 @@ func coursesHandler(db *sql.DB) http.HandlerFunc {
 				courses.code,
 				courses.title,
 				courses.offer_dept,
+				courses.description,
 				COUNT(reviews.id) AS reviewCount,
 				courses.liked_count,
-				courses.disliked_count
+				courses.disliked_count,
+				COALESCE((
+					SELECT GROUP_CONCAT(DISTINCT instructor, '|')
+					FROM subclasses
+					WHERE course_code = courses.code
+					  AND instructor IS NOT NULL
+					  AND TRIM(instructor) <> ''
+				), '') AS instructors
 			FROM courses
 			LEFT JOIN reviews ON reviews.course_code = courses.code
 			WHERE (? = '' OR LOWER(courses.code) LIKE '%' || ? || '%' OR LOWER(courses.title) LIKE '%' || ? || '%')
@@ -108,12 +116,20 @@ func coursesHandler(db *sql.DB) http.HandlerFunc {
 		courses := make([]courseSummary, 0, 10)
 		for rows.Next() {
 			var item courseSummary
+			var description sql.NullString
+			var instructorsRaw string
 			if err := rows.Scan(
-				&item.Code, &item.Title, &item.OfferDept, &item.ReviewedCount,
-				&item.LikedCount, &item.DislikedCount,
+				&item.Code, &item.Title, &item.OfferDept, &description, &item.ReviewedCount,
+				&item.LikedCount, &item.DislikedCount, &instructorsRaw,
 			); err != nil {
 				writeError(response, http.StatusInternalServerError, "QUERY_FAILED", "课程读取失败")
 				return
+			}
+			if description.Valid {
+				item.Description = &description.String
+			}
+			if instructorsRaw != "" {
+				item.Instructors = strings.Split(instructorsRaw, "|")
 			}
 			courses = append(courses, item)
 		}

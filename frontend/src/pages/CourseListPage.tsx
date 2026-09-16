@@ -35,6 +35,7 @@ export default function CourseListPage() {
   const [keywordInput, setKeywordInput] = useState('');
   const [keyword, setKeyword] = useState('');
   const [department, setDepartment] = useState<string | undefined>(undefined);
+  const [instructor, setInstructor] = useState<string | undefined>(undefined);
   const [sort, setSort] = useState<CourseSort>('code');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -78,7 +79,7 @@ export default function CourseListPage() {
   const fuse = useMemo(
     () =>
       new Fuse(allCourses, {
-        keys: ['code', 'title', 'offerDept'],
+        keys: ['code', 'title', 'offerDept', 'description', 'instructors'],
         threshold: 0.4,
         ignoreLocation: true,
         includeScore: true,
@@ -87,7 +88,14 @@ export default function CourseListPage() {
     [allCourses],
   );
 
-  // 本地模糊过滤 + 院系筛选 + 排序
+  // 所有课程涉及过的老师（去重），供老师筛选下拉使用
+  const instructors = useMemo(() => {
+    const set = new Set<string>();
+    allCourses.forEach((course) => course.instructors?.forEach((name) => set.add(name)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [allCourses]);
+
+  // 本地模糊过滤 + 院系筛选 + 老师筛选 + 排序
   const courses = useMemo<CourseSummary[]>(() => {
     let list: CourseSummary[] = allCourses;
     if (keyword) {
@@ -95,6 +103,9 @@ export default function CourseListPage() {
     }
     if (department) {
       list = list.filter((course) => course.offerDept === department);
+    }
+    if (instructor) {
+      list = list.filter((course) => course.instructors?.includes(instructor));
     }
     const sorted = [...list];
     if (sort === 'reviews') {
@@ -105,7 +116,7 @@ export default function CourseListPage() {
       sorted.sort((a, b) => a.code.localeCompare(b.code));
     }
     return sorted;
-  }, [allCourses, fuse, keyword, department, sort]);
+  }, [allCourses, fuse, keyword, department, instructor, sort]);
 
   async function handleQuickAdd(course: CourseSummary) {
     setPendingCode(course.code);
@@ -144,10 +155,32 @@ export default function CourseListPage() {
       },
       { title: '课程名称', dataIndex: 'title' },
       {
+        title: '课程简介',
+        dataIndex: 'description',
+        responsive: ['md'],
+        width: 280,
+        render: (value: string | null) =>
+          value ? (
+            <Typography.Text ellipsis={{ tooltip: value }} style={{ maxWidth: 260 }}>
+              {value}
+            </Typography.Text>
+          ) : (
+            '—'
+          ),
+      },
+      {
         title: '开课院系',
         dataIndex: 'offerDept',
         responsive: ['lg'],
         render: (value: string | null) => value || '—',
+      },
+      {
+        title: '授课老师',
+        responsive: ['lg'],
+        render: (_, course) =>
+          course.instructors && course.instructors.length > 0
+            ? course.instructors.join('、')
+            : '—',
       },
       { title: '评价数', dataIndex: 'reviewedCount', width: 90 },
       {
@@ -184,14 +217,14 @@ export default function CourseListPage() {
     <div>
       <Typography.Title level={3}>课程列表</Typography.Title>
       <Typography.Paragraph type="secondary">
-        支持模糊搜索：拼写误差、部分匹配也能命中。点击课程进入详情，查看成绩分布、六维评价与可选班次。
+        支持模糊搜索：课程代码、名称、简介都能搜，拼写误差或部分匹配也能命中。可按院系、授课老师筛选，点击课程进入详情查看成绩分布、六维评价与可选班次。
       </Typography.Paragraph>
 
       <Space wrap size="middle" className="list-toolbar">
         <Input.Search
           allowClear
-          placeholder="搜索课程代码或名称（支持模糊匹配）"
-          style={{ width: 280 }}
+          placeholder="搜索课程代码、名称或描述（支持模糊匹配）"
+          style={{ width: 300 }}
           value={keywordInput}
           onChange={(event) => setKeywordInput(event.target.value)}
           onSearch={(value) => setKeyword(value.trim())}
@@ -203,6 +236,18 @@ export default function CourseListPage() {
           value={department}
           onChange={setDepartment}
           options={departments.map((name) => ({ value: name, label: name }))}
+        />
+        <Select
+          allowClear
+          showSearch
+          placeholder="全部老师"
+          style={{ width: 220 }}
+          value={instructor}
+          onChange={setInstructor}
+          options={instructors.map((name) => ({ value: name, label: name }))}
+          filterOption={(input, option) =>
+            (option?.label as string)?.toLowerCase().includes(input.toLowerCase())
+          }
         />
         <Select
           value={sort}
