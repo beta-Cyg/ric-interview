@@ -59,9 +59,9 @@ func campusOf(venue string) string {
 // ---------- 冲突与通勤判定 ----------
 
 const (
-	venueChangeGapMinutes  = 15
-	// 本部与百周年校园相邻（有连廊），30 分钟偏保守，只作提示不阻断。
-	crossCampusGapMinutes = 30
+	venueChangeGapMinutes = 15
+	// 本部与百周年校园相邻（有连廊），20 分钟为步行 + 找教室的可行下限，只作提示不阻断。
+	crossCampusGapMinutes = 20
 )
 
 type scheduleRef struct {
