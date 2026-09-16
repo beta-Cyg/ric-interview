@@ -82,12 +82,17 @@ export interface SlotGroup {
   dateRanges: string[];
 }
 
+// 归约依据：同一个「周几 + 时段 + 教室」视为同一节课。
+export function slotKey(slot: Slot): string {
+  return `${slot.day}|${slot.start_time}|${slot.end_time}|${slot.venue}`;
+}
+
 // 同一个「周几 + 时段 + 教室」在数据集里会被拆成多条（学期切成多个教学周段），
 // 归约后一行显示，日期段挂在下面，避免 8 条记录渲染成 8 行重复内容。
 export function groupSlots(slots: Slot[]): SlotGroup[] {
   const groups = new Map<string, SlotGroup>();
   slots.forEach((slot) => {
-    const key = `${slot.day}|${slot.start_time}|${slot.end_time}|${slot.venue}`;
+    const key = slotKey(slot);
     const range = formatDateRange(slot.start_date, slot.end_date);
     const existing = groups.get(key);
     if (existing) {

@@ -4,10 +4,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchConflicts } from '../api';
 import ConflictPanel from '../components/ConflictPanel';
+import SlotSchedule from '../components/SlotSchedule';
 import WeeklyTimetable from '../components/WeeklyTimetable';
 import { useCart, type CartItem } from '../store/cart';
 import type { ScheduleResult, Slot } from '../types';
-import { buildWeeks, formatSlot, slotMeetsInWeek } from '../utils/schedule';
+import { buildWeeks, slotMeetsInWeek } from '../utils/schedule';
 
 const EMPTY_SCHEDULE: ScheduleResult = { conflicts: [], warnings: [], semesters: [] };
 
@@ -111,16 +112,7 @@ export default function CartPage() {
     },
     {
       title: '上课时间',
-      render: (_, item) =>
-        item.slots.length === 0 ? (
-          <span>—</span>
-        ) : (
-          <div>
-            {item.slots.map((slot, index) => (
-              <div key={index}>{formatSlot(slot)}</div>
-            ))}
-          </div>
-        ),
+      render: (_, item) => <SlotSchedule slots={item.slots} week={selectedWeek} />,
     },
     {
       title: '操作',
@@ -198,7 +190,17 @@ export default function CartPage() {
               <ConflictPanel conflicts={schedule.conflicts} warnings={schedule.warnings} />
             </Card>
 
-            <Card size="small" title={`已选班次（${items.length}）`}>
+            <Card
+              size="small"
+              title={`已选班次（${items.length}）`}
+              extra={
+                selectedWeek ? (
+                  <span style={{ fontSize: 12, color: '#8c8c8c' }}>
+                    灰色 = {selectedWeek.label} 无课
+                  </span>
+                ) : null
+              }
+            >
               <Table<CartItem>
                 columns={columns}
                 dataSource={items}

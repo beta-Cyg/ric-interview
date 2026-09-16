@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Button, Tag, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
+import SlotSchedule from './SlotSchedule';
 import { useCart } from '../store/cart';
 import type { Subclass } from '../types';
-import { dayName, formatTimeRange, groupSlots } from '../utils/schedule';
 
 const COLLAPSE_THRESHOLD = 5;
 
@@ -43,31 +43,7 @@ export default function SubclassList({ courseCode, courseTitle, subclasses }: Pr
     {
       title: '上课时间',
       key: 'slots',
-      render: (_, subclass) => {
-        const groups = groupSlots(subclass.slots);
-        if (groups.length === 0) {
-          return <span>—</span>;
-        }
-        return (
-          <div>
-            {groups.map((group) => (
-              <div key={group.key} style={{ marginBottom: 6 }}>
-                <div>
-                  {dayName(group.day)} {formatTimeRange(group.startTime, group.endTime)}
-                  {group.venue ? ` ${group.venue}` : ''}
-                </div>
-                {group.dateRanges.length > 0 && (
-                  <div className="slot-dates" title={group.dateRanges.join('、')}>
-                    {group.dateRanges.length > 3
-                      ? `${group.dateRanges.slice(0, 2).join(' · ')} · 共 ${group.dateRanges.length} 段`
-                      : group.dateRanges.join(' · ')}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        );
-      },
+      render: (_, subclass) => <SlotSchedule slots={subclass.slots} />,
     },
     {
       title: '状态',
