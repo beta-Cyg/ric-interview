@@ -143,7 +143,7 @@ export default function CourseDetailPage() {
               label: '概览',
               children: (
                 <Card size="small">
-                  <Descriptions bordered column={2} size="small">
+                  <Descriptions bordered column={{ xs: 1, md: 2 }} size="small">
                     <Descriptions.Item label="开课院系" span={2}>
                       {course.offer_dept || '—'}
                     </Descriptions.Item>

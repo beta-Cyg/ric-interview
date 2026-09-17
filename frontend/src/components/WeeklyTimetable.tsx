@@ -50,7 +50,7 @@ function buildBlocks(items: CartItem[], week: WeekOption | null): Block[] {
   const blocks: Block[] = [];
   items.forEach((item) => {
     item.slots.forEach((slot, index) => {
-      if (slot.day < 1 || slot.day > 5) return;
+      if (slot.day < 1 || slot.day > 7) return;
       if (week && !slotMeetsInWeek(slot, week)) return;
       const startMin = toMinutes(slot.start_time);
       const endMin = toMinutes(slot.end_time);
@@ -77,6 +77,10 @@ interface Props {
   week: WeekOption | null;
 }
 
+// 1=周一 … 7=周日，覆盖 HKU 可能设在周六的课程（数据集中暂未体现）
+const DAYS = [1, 2, 3, 4, 5, 6, 7];
+const isWeekend = (day: number) => day === 6 || day === 7;
+
 export default function WeeklyTimetable({ items, week }: Props) {
   const blocks = buildBlocks(items, week);
   const hours = Array.from({ length: (DAY_END - DAY_START) / 60 + 1 }, (_, i) => 8 + i);
@@ -85,13 +89,17 @@ export default function WeeklyTimetable({ items, week }: Props) {
     <div
       className="timetable"
       style={{
-        gridTemplateColumns: '56px repeat(5, 1fr)',
+        gridTemplateColumns: '56px repeat(7, 1fr)',
         gridTemplateRows: `32px repeat(${ROW_COUNT}, 22px)`,
       }}
     >
       <div className="timetable-corner" />
-      {[1, 2, 3, 4, 5].map((day) => (
-        <div key={day} className="timetable-day" style={{ gridRow: 1, gridColumn: day + 1 }}>
+      {DAYS.map((day) => (
+        <div
+          key={day}
+          className={`timetable-day${isWeekend(day) ? ' is-weekend' : ''}`}
+          style={{ gridRow: 1, gridColumn: day + 1 }}
+        >
           {dayName(day)}
         </div>
       ))}
@@ -106,33 +114,35 @@ export default function WeeklyTimetable({ items, week }: Props) {
         </div>
       ))}
 
-      {[1, 2, 3, 4, 5].map((day) => (
+      {DAYS.map((day) => (
         <div
           key={`col-${day}`}
-          className="timetable-column"
+          className={`timetable-column${isWeekend(day) ? ' is-weekend' : ''}`}
           style={{ gridRow: `2 / ${2 + ROW_COUNT}`, gridColumn: day + 1 }}
         />
       ))}
 
-      {blocks.map((block) => (
-        <div
-          key={block.key}
-          className="timetable-block"
-          style={{
-            gridRow: `${block.rowStart} / ${block.rowEnd}`,
-            gridColumn: block.day + 1,
-            backgroundColor: colorOf(block.item.courseCode),
-            borderColor: borderColorOf(block.item.courseCode),
-          }}
-          title={`${block.item.courseCode} ${block.item.section ?? ''} ${block.start}-${block.end} ${block.venue}`}
-        >
-          <div className="timetable-block-code">
-            {block.item.courseCode} {block.item.section ?? ''}
+      {blocks.map((block) => {
+        const span = block.rowEnd - block.rowStart;
+        return (
+          <div
+            key={block.key}
+            className={`timetable-block${span <= 2 ? ' is-short' : ''}`}
+            style={{
+              gridRow: `${block.rowStart} / ${block.rowEnd}`,
+              gridColumn: block.day + 1,
+              backgroundColor: colorOf(block.item.courseCode),
+              borderColor: borderColorOf(block.item.courseCode),
+            }}
+            title={`${block.item.courseCode} ${block.item.section ?? ''} ${block.start}-${block.end} ${block.venue}`}
+          >
+            <div className="timetable-block-code">
+              {block.item.courseCode} {block.item.section ?? ''}
+            </div>
+            <div className="timetable-block-meta">{block.start}-{block.end} · {block.venue}</div>
           </div>
-          <div className="timetable-block-time">{block.start}-{block.end}</div>
-          <div className="timetable-block-venue">{block.venue}</div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

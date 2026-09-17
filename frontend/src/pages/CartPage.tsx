@@ -1,4 +1,4 @@
-import { Alert, Button, Card, Empty, Segmented, Select, Space, Table, Typography } from 'antd';
+import { Alert, Button, Card, Empty, Grid, Segmented, Select, Space, Table, Typography } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -81,6 +81,9 @@ export default function CartPage() {
     () => (weekIndex === 0 ? null : weeks.find((week) => week.index === weekIndex) ?? null),
     [weeks, weekIndex],
   );
+
+  const screens = Grid.useBreakpoint();
+  const isMobile = screens.md === false;
 
   const hasClassInWeek = useMemo(() => {
     if (!selectedWeek) return true;
@@ -174,7 +177,9 @@ export default function CartPage() {
                   />
                 </Space>
               )}
-              <WeeklyTimetable items={visibleItems} week={selectedWeek} />
+              <div className="timetable-scroll">
+                <WeeklyTimetable items={visibleItems} week={selectedWeek} />
+              </div>
               {!hasClassInWeek && selectedWeek && (
                 <Alert
                   type="info"
@@ -201,13 +206,45 @@ export default function CartPage() {
                 ) : null
               }
             >
-              <Table<CartItem>
-                columns={columns}
-                dataSource={items}
-                rowKey="subclassId"
-                pagination={false}
-                size="small"
-              />
+              {isMobile ? (
+                <div className="cart-cards">
+                  {items.map((item) => (
+                    <div key={item.subclassId} className="cart-card">
+                      <div className="cart-card-head">
+                        <Typography.Link onClick={() => navigate(`/course/${item.courseCode}`)}>
+                          {item.courseCode} {item.courseTitle}
+                        </Typography.Link>
+                        <Button size="small" danger onClick={() => remove(item.subclassId)}>
+                          移除
+                        </Button>
+                      </div>
+                      <div className="cart-row">
+                        <span>班次</span>
+                        <div>{item.section || '—'}</div>
+                      </div>
+                      <div className="cart-row">
+                        <span>教师</span>
+                        <div>{item.instructor || '—'}</div>
+                      </div>
+                      <div className="cart-row">
+                        <span>上课时间</span>
+                        <div>
+                          <SlotSchedule slots={item.slots} week={selectedWeek} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <Table<CartItem>
+                  columns={columns}
+                  dataSource={items}
+                  rowKey="subclassId"
+                  pagination={false}
+                  size="small"
+                  scroll={{ x: 640 }}
+                />
+              )}
             </Card>
           </>
         )}

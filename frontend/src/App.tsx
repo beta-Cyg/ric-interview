@@ -1,4 +1,6 @@
-import { ConfigProvider, Layout, Menu, Typography } from 'antd';
+import { Button, ConfigProvider, Drawer, Layout, Menu, Typography } from 'antd';
+import { MenuOutlined } from '@ant-design/icons';
+import { useState } from 'react';
 import zhCN from 'antd/locale/zh_CN';
 import {
   BrowserRouter,
@@ -20,6 +22,7 @@ function Navigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { count } = useCart();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const items = [
     { key: '/', label: '课程列表' },
@@ -33,12 +36,24 @@ function Navigation() {
   // 详情页属于「课程列表」这一支，保持高亮
   const activeKey = location.pathname.startsWith('/course') ? '/' : location.pathname;
 
+  const go = (key: string) => {
+    setDrawerOpen(false);
+    navigate(key);
+  };
+
   return (
     <Header className="app-header">
       <img className="app-logo" src="/ric-logo-invert.png" alt="RIC" />
       <Typography.Text className="app-brand" strong>
         RIC 选课规划器
       </Typography.Text>
+      <Button
+        type="text"
+        aria-label="菜单"
+        icon={<MenuOutlined />}
+        className="app-menu-toggle"
+        onClick={() => setDrawerOpen(true)}
+      />
       <Menu
         theme="dark"
         mode="horizontal"
@@ -48,6 +63,22 @@ function Navigation() {
         className="app-menu"
         style={{ background: 'transparent' }}
       />
+      <Drawer
+        title="菜单"
+        placement="right"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        styles={{ body: { padding: 0 } }}
+        className="app-drawer"
+      >
+        <Menu
+          theme="light"
+          mode="inline"
+          selectedKeys={[activeKey]}
+          items={items}
+          onClick={({ key }) => go(key)}
+        />
+      </Drawer>
     </Header>
   );
 }

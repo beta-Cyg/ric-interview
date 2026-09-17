@@ -263,6 +263,11 @@ body {
   border-left: 1px solid #e5e6eb;
 }
 
+.timetable-day.is-weekend {
+  background: #f2f4f5;
+  color: #595959;
+}
+
 .timetable-hour {
   display: flex;
   align-items: flex-start;
@@ -278,6 +283,10 @@ body {
   z-index: 0;
 }
 
+.timetable-column.is-weekend {
+  background: #fafbfb;
+}
+
 .timetable-block {
   z-index: 1;
   margin: 1px 2px;
@@ -290,18 +299,26 @@ body {
   overflow: hidden;
 }
 
+.timetable-block.is-short {
+  padding: 1px 3px;
+  line-height: 1.2;
+}
+
 .timetable-block-code {
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.timetable-block-time {
+.timetable-block-meta {
   font-size: 10px;
-  opacity: 0.92;
-  margin: 1px 0;
-}
-
-.timetable-block-venue {
+  line-height: 1.2;
   opacity: 0.85;
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ---------- 冲突面板 ---------- */
@@ -721,4 +738,191 @@ body {
   .detail-metrics {
     grid-template-columns: 1fr;
   }
+}
+
+/* ============================================================
+   移动端 / 竖屏适配（≤768px）
+   ============================================================ */
+
+/* 汉堡按钮：桌面端隐藏，移动端显示在右侧 */
+.app-header .app-menu-toggle {
+  display: none;
+  color: #ffffff;
+  background: transparent;
+}
+
+/* 抽屉内联菜单占满宽度、去掉右侧描边 */
+.app-drawer .ant-menu {
+  border-right: none;
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0 12px;
+    gap: 10px;
+  }
+
+  .app-brand {
+    display: none;
+  }
+
+  /* 窄屏隐藏横向菜单，改用汉堡抽屉 */
+  .app-menu {
+    display: none;
+  }
+
+  .app-menu-toggle {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
+  .app-header .app-menu-toggle {
+    display: inline-flex;
+    margin-left: auto;
+  }
+
+  .app-content {
+    padding: 16px 12px 40px;
+  }
+
+  /* 课程列表工具栏：各筛选器在窄屏下占满整行并堆叠 */
+  .list-toolbar .ant-input-search,
+  .list-toolbar .ant-select {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* 课程卡片：操作按钮换到第二行并占满宽度 */
+  .course-card {
+    flex-wrap: wrap;
+  }
+
+  .course-action {
+    width: 100%;
+    margin-top: 8px;
+  }
+}
+
+/* 周课表：窄屏横向滚动，避免每天被压成极窄列导致文字溢出 */
+.timetable-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.timetable {
+  min-width: 720px;
+}
+
+/* ---------- 班次列表：窄屏卡片式（避免 6 列表格挤压导致条目过长） ---------- */
+
+.subclass-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.subclass-card {
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+/* 已选班次用品牌青绿描边，与周课表 / 列表「已选」标记保持一致 */
+.subclass-card.is-selected {
+  border-color: #1D9E75;
+  background: #E1F5EE;
+}
+
+.subclass-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.subclass-section {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f1f1f;
+}
+
+.subclass-card-tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subclass-sem {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+.subclass-row {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.subclass-row > span:first-child {
+  flex: 0 0 56px;
+  color: #8c8c8c;
+}
+
+.subclass-row > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.subclass-actions {
+  margin-top: 8px;
+}
+
+/* 选课篮「已选班次」：窄屏卡片式（避免横向滚动才能看全内容） */
+
+.cart-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cart-card {
+  border: 1px solid #f0f0f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.cart-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cart-card-head .ant-typography-link {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f1f1f;
+}
+
+.cart-row {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+.cart-row > span:first-child {
+  flex: 0 0 56px;
+  color: #8c8c8c;
+}
+
+.cart-row > div {
+  flex: 1 1 auto;
+  min-width: 0;
 }

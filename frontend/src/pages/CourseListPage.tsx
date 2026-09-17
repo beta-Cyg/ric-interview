@@ -153,7 +153,7 @@ export default function CourseListPage() {
         <Input.Search
           allowClear
           placeholder="搜索课程代码、名称或描述（支持模糊匹配）"
-          style={{ width: 300 }}
+          style={{ width: '100%', maxWidth: 300 }}
           value={keywordInput}
           onChange={(event) => setKeywordInput(event.target.value)}
           onSearch={(value) => setKeyword(value.trim())}
@@ -161,7 +161,7 @@ export default function CourseListPage() {
         <Select
           allowClear
           placeholder="全部院系"
-          style={{ width: 240 }}
+          style={{ width: '100%', maxWidth: 240 }}
           value={department}
           onChange={setDepartment}
           options={departments.map((name) => ({ value: name, label: name }))}
@@ -170,7 +170,7 @@ export default function CourseListPage() {
           allowClear
           showSearch
           placeholder="全部讲师"
-          style={{ width: 220 }}
+          style={{ width: '100%', maxWidth: 220 }}
           value={instructor}
           onChange={setInstructor}
           options={instructors.map((name) => ({ value: name, label: name }))}
@@ -180,7 +180,7 @@ export default function CourseListPage() {
         />
         <Select
           value={sort}
-          style={{ width: 150 }}
+          style={{ width: '100%', maxWidth: 150 }}
           onChange={(value: CourseSort) => setSort(value)}
           options={SORT_OPTIONS}
         />
