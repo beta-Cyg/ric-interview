@@ -11,7 +11,7 @@ import {
 } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { fetchCourse } from '../api';
 import FeatureVotesPanel from '../components/FeatureVotes';
 import GradeDistributionChart from '../components/GradeDistribution';
@@ -24,10 +24,18 @@ export default function CourseDetailPage() {
   const { code = '' } = useParams();
   const navigate = useNavigate();
   const { items } = useCart();
+  const [searchParams] = useSearchParams();
 
   const [course, setCourse] = useState<CourseDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // 从课程列表点「加入选课篮」（多班次）跳转而来时，自动打开「班次时间」一栏
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState<string>(tabParam === 'subclass' ? 'subclass' : 'overview');
+  useEffect(() => {
+    setActiveTab(tabParam === 'subclass' ? 'subclass' : 'overview');
+  }, [tabParam, code]);
 
   useEffect(() => {
     let active = true;
@@ -127,7 +135,8 @@ export default function CourseDetailPage() {
         </Card>
 
         <Tabs
-          defaultActiveKey="overview"
+          activeKey={activeTab}
+          onChange={setActiveTab}
           items={[
             {
               key: 'overview',

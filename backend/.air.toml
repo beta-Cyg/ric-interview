@@ -6,6 +6,7 @@ tmp_dir = "tmp"
   bin = "tmp/main"
   include_ext = ["go", "mod", "sum"]
   exclude_dir = ["tmp", "data"]
+  poll = true
   delay = 500
   stop_on_error = true
   send_interrupt = true

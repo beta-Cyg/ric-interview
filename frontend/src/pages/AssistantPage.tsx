@@ -15,6 +15,7 @@ import { UserOutlined, SendOutlined } from '@ant-design/icons';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { fetchAssistant, type AssistantReply } from '../api';
 import { useCart } from '../store/cart';
+import { useQuickAdd } from '../hooks/useQuickAdd';
 import Markdown from '../components/Markdown';
 
 interface ChatMessage {
@@ -51,8 +52,66 @@ const SUGGESTIONS = [
   '哪门相对「水」一点，适合拿来凑学分？',
 ];
 
+// 课程代码格式：4 个字母 + 4 个数字（如 ACCT1101），全量数据已验证一致。
+const COURSE_CODE_RE = /\b[A-Za-z]{4}\d{4}\b/g;
+
+function extractCourseCodes(text: string): string[] {
+  const found = text.match(COURSE_CODE_RE);
+  if (!found) return [];
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const raw of found) {
+    const code = raw.toUpperCase();
+    if (!seen.has(code)) {
+      seen.add(code);
+      result.push(code);
+    }
+  }
+  // 一个气泡里最多渲染 8 个，避免回复里罗列过多代码时拥挤。
+  return result.slice(0, 8);
+}
+
+// 助手回复里若提到课程代码，在其下方渲染「加入选课篮」按钮（轻量版直接加课）。
+function AssistantCourseActions({
+  content,
+  onAdd,
+  isInCart,
+  pendingCodes,
+}: {
+  content: string;
+  onAdd: (code: string) => void;
+  isInCart: (code: string) => boolean;
+  pendingCodes: Set<string>;
+}) {
+  const codes = extractCourseCodes(content);
+  if (codes.length === 0) return null;
+  return (
+    <div className="chat-actions">
+      {codes.map((code) =>
+        isInCart(code) ? (
+          <Tag key={code} color="success" style={{ marginInlineEnd: 8 }}>
+            已加入 {code}
+          </Tag>
+        ) : (
+          <Button
+            key={code}
+            size="small"
+            type="primary"
+            loading={pendingCodes.has(code)}
+            onClick={() => onAdd(code)}
+            style={{ marginInlineEnd: 8, marginBottom: 4 }}
+          >
+            加入选课篮（{code}）
+          </Button>
+        ),
+      )}
+    </div>
+  );
+}
+
 export default function AssistantPage() {
-  const { items } = useCart();
+  const { items, subclassIdOf } = useCart();
+  const { quickAdd, pendingCodes } = useQuickAdd();
   const [messages, setMessages] = useState<ChatMessage[]>(loadChat);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -169,7 +228,15 @@ export default function AssistantPage() {
                       </Tag>
                     )}
                     {message.role === 'assistant' ? (
-                      <Markdown content={message.content} />
+                      <>
+                        <Markdown content={message.content} />
+                        <AssistantCourseActions
+                          content={message.content}
+                          onAdd={quickAdd}
+                          isInCart={(code) => subclassIdOf(code) !== null}
+                          pendingCodes={pendingCodes}
+                        />
+                      </>
                     ) : (
                       <div className="chat-text">{message.content}</div>
                     )}

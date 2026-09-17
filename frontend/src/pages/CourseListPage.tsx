@@ -1,9 +1,10 @@
-import { Alert, Button, Empty, Input, Select, Space, Tag, Typography, message } from 'antd';
+import { Alert, Button, Empty, Input, Select, Space, Tag, Typography } from 'antd';
 import Fuse from 'fuse.js';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { fetchCourse, fetchCourses, fetchDepartments } from '../api';
+import { fetchCourses, fetchDepartments } from '../api';
 import { useCart } from '../store/cart';
+import { useQuickAdd } from '../hooks/useQuickAdd';
 import type { CourseSort, CourseSummary } from '../types';
 
 const SORT_OPTIONS = [
@@ -46,7 +47,8 @@ function deptColorOf(dept: string): { bg: string; fg: string; bd: string } {
 
 export default function CourseListPage() {
   const navigate = useNavigate();
-  const { add, hasSubclass, subclassIdOf } = useCart();
+  const { hasSubclass, subclassIdOf } = useCart();
+  const { quickAdd, pendingCodes } = useQuickAdd();
 
   // 全量课程：仅加载一次，模糊搜索在本地完成，无需每次输入都请求后端
   const [allCourses, setAllCourses] = useState<CourseSummary[]>([]);
@@ -58,7 +60,6 @@ export default function CourseListPage() {
   const [sort, setSort] = useState<CourseSort>('code');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [pendingCode, setPendingCode] = useState<string | null>(null);
 
   // 关键词防抖：输入停止 300ms 后才触发模糊匹配
   useEffect(() => {
@@ -138,30 +139,7 @@ export default function CourseListPage() {
   }, [allCourses, fuse, keyword, department, instructor, sort]);
 
   async function handleQuickAdd(course: CourseSummary) {
-    setPendingCode(course.code);
-    try {
-      const detail = await fetchCourse(course.code);
-      const active = detail.subclasses.filter((item) => item.is_active);
-      if (active.length === 0) {
-        message.warning(`${course.code} 暂无可排班次，无法加入选课篮`);
-        return;
-      }
-      if (active.length > 1) {
-        message.info(`${course.code} 有 ${active.length} 个班次，请选择具体 section`);
-        navigate(`/course/${course.code}`);
-        return;
-      }
-      const result = add({ code: detail.code, title: detail.title }, active[0]);
-      if (result === 'replaced') {
-        message.success(`已切换 ${detail.code} 的班次为 ${active[0].section ?? ''}`);
-      } else {
-        message.success(`已加入 ${detail.code} ${active[0].section ?? ''}`);
-      }
-    } catch (requestError) {
-      message.error(requestError instanceof Error ? requestError.message : '加入失败');
-    } finally {
-      setPendingCode(null);
-    }
+    await quickAdd(course.code);
   }
 
   return (
@@ -279,7 +257,7 @@ export default function CourseListPage() {
                   size="small"
                   type={selected ? 'default' : 'primary'}
                   className="course-action"
-                  loading={pendingCode === course.code}
+                  loading={pendingCodes.has(course.code)}
                   onClick={(event) => {
                     event.stopPropagation();
                     void handleQuickAdd(course);

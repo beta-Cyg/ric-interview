@@ -127,6 +127,16 @@ body {
   font-size: 11px;
   color: #8c8c8c;
   height: 16px;
+  flex: 0 0 auto;
+}
+
+/* 柱子专属缩放区：占满列内剩余高度，百分比只对该区生效，避免溢出压缩 */
+.grade-bar-area {
+  flex: 1 1 auto;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  min-height: 0;
 }
 
 .grade-bar {
@@ -139,6 +149,7 @@ body {
   font-size: 11px;
   color: #595959;
   margin-top: 6px;
+  flex: 0 0 auto;
 }
 
 .empty-hint {
@@ -167,6 +178,46 @@ body {
 
 .feature-item .ant-progress {
   margin-bottom: 0;
+}
+
+/* ---------- 六维六边形雷达图 ---------- */
+.feature-radar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.feature-radar-svg {
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+}
+.radar-grid {
+  fill: none;
+  stroke: #f0f0f0;
+  stroke-width: 1;
+}
+.radar-axis {
+  stroke: #e8e8e8;
+  stroke-width: 1;
+}
+.radar-data {
+  fill: rgba(29, 158, 117, 0.18);
+  stroke: #1D9E75;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+.radar-dot {
+  fill: #1D9E75;
+}
+.radar-label {
+  font-size: 11px;
+  fill: #595959;
+}
+.feature-radar-caption {
+  font-size: 12px;
+  margin-top: 4px;
+  text-align: center;
 }
 
 /* ---------- 评价列表 ---------- */
@@ -337,6 +388,16 @@ body {
   display: block;
   margin-top: 6px;
   font-size: 12px;
+}
+
+/* 助手回复中解析出的课程代码 → 直接加课按钮 */
+.chat-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #ececec;
 }
 
 /* ---------- Markdown 渲染（AI 回复内） ---------- */
