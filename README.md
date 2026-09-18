@@ -91,6 +91,23 @@ docker compose up -d --build frontend   # 重建镜像并执行 pnpm install
 >
 > 后端改动 Go 代码后若未生效，执行 `docker restart ric-backend` 强制让 air 重建。
 
+#### 前端 UI 改动重启后不生效（缓存）
+
+前端是 Vite dev server + 源码 bind mount，代码改动本应即时热更新。但如果重启服务后**部分 UI 改动（如成绩分布颜色、六维雷达图）不生效**，通常是缓存层问题，按以下顺序处理：
+
+1. **硬刷新浏览器**（首选）：`Ctrl+Shift+R`（Mac `Cmd+Shift+R`）。浏览器可能缓存了旧的 ES 模块。
+2. **清 Vite 预构建缓存并重启前端容器**（服务端缓存）：
+
+   ```bash
+   docker compose exec frontend rm -rf node_modules/.vite
+   docker compose restart frontend
+   ```
+
+   重启后 Vite 会重新生成 `node_modules/.vite/deps`，再硬刷新浏览器即可。
+3. **仍不生效**：用无痕窗口访问 `http://localhost:5173` 排除浏览器扩展 / 强缓存；确认访问的是 5173（dev server）而非旧的 build 端口。
+
+> 该坑只在「源码已改、但缓存仍是旧版」的迭代场景出现；`bash scripts/setup.sh` 全新安装时预构建缓存本就基于当前源码生成，不会中招，故 setup.sh 无需内置清缓存步骤。
+
 ## 本地开发（不用 Docker）
 
 后端：
